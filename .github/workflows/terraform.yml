@@ -6,13 +6,15 @@ on:
       - main
     paths:
       - "stack/**"
-      - "modules/**"`r`n      - ".github/workflows/**"
+      - "modules/**"
+      - ".github/workflows/**"
   pull_request:
     branches:
       - main
     paths:
       - "stack/**"
-      - "modules/**"`r`n      - ".github/workflows/**"
+      - "modules/**"
+      - ".github/workflows/**"
 
 permissions:
   id-token: write   # Required for OIDC token request
