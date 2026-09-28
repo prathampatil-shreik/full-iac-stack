@@ -1,0 +1,44 @@
+# ---------------------------------------------------------------------------
+# terraform.tfvars.example
+#
+# Copy this file to terraform.tfvars and fill in real values.
+# NEVER commit terraform.tfvars with real secrets to Git.
+# The db_password must be supplied via TF_VAR_db_password environment variable.
+#
+# NOTE: This project uses the existing default VPC (vpc-0540f855b0f697698,
+# 172.31.0.0/16) due to the AWS account VPC quota limit. The VPC and its
+# default public subnets are discovered via Terraform data sources.
+# Only private subnets are created by Terraform.
+# ---------------------------------------------------------------------------
+
+aws_region   = "us-east-1"
+project_name = "full-iac-stack"
+environment  = "dev"
+
+# Availability zones
+availability_zones = ["us-east-1a", "us-east-1b"]
+
+# Private subnets — created by Terraform inside the default VPC (172.31.0.0/16)
+# Existing default subnets occupy: 172.31.0.0/20, 172.31.16.0/20, 172.31.32.0/20
+# These CIDRs are safe and non-overlapping:
+private_app_subnet_cidrs = ["172.31.100.0/24", "172.31.101.0/24"]
+private_db_subnet_cidrs  = ["172.31.110.0/24", "172.31.111.0/24"]
+
+# Compute
+instance_count  = 2
+instance_type   = "t3.micro"
+ecr_image_uri   = "925213028316.dkr.ecr.us-east-1.amazonaws.com/full-iac-stack-app:1.0.0"
+app_port        = 8080
+app_environment = "dev"
+app_version     = "1.0.0"
+
+# Database
+db_name              = "appdb"
+db_username          = "admin"
+db_instance_class    = "db.t3.micro"
+db_allocated_storage = 20
+
+# db_password is intentionally omitted here.
+# Supply it via environment variable:
+#   export TF_VAR_db_password="your-secure-password"
+# db_password = "CHANGE_ME"
