@@ -129,3 +129,7 @@ jobs:
         env:
           TF_VAR_db_password: ${{ secrets.TF_VAR_DB_PASSWORD }}
         run: terraform apply -auto-approve tfplan
+
+# CI plan validation
+
+# CI plan validation
