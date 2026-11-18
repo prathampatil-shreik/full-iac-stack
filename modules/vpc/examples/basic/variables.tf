@@ -1,3 +1,4 @@
+
 variable "project_name" {
   description = "Name of the project"
   type        = string
@@ -29,9 +30,20 @@ variable "private_subnet_cidrs" {
 }
 
 variable "enable_nat_gateway" {
-  description = "Whether to create a NAT Gateway"
+  description = "Whether to create NAT Gateways"
   type        = bool
   default     = true
+}
+
+variable "nat_gateway_mode" {
+  description = "NAT Gateway deployment mode: single or per_az"
+  type        = string
+  default     = "single"
+
+  validation {
+    condition     = contains(["single", "per_az"], var.nat_gateway_mode)
+    error_message = "NAT Gateway mode must be either single or per_az."
+  }
 }
 
 variable "tags" {

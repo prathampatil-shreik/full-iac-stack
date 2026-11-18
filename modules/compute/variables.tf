@@ -3,8 +3,8 @@ variable "project_name" {
   type        = string
 
   validation {
-    condition     = length(var.project_name) > 2
-    error_message = "project_name must be at least 3 characters."
+    condition     = can(regex("^[a-zA-Z0-9][a-zA-Z0-9-]{2,39}$", var.project_name))
+    error_message = "project_name must be 3-40 characters, start with a letter or number, and contain only letters, numbers, and hyphens."
   }
 }
 

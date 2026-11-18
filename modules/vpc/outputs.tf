@@ -1,3 +1,4 @@
+
 output "vpc_id" {
   description = "ID of the VPC"
   value       = aws_vpc.this.id
@@ -34,6 +35,11 @@ output "internet_gateway_id" {
 }
 
 output "nat_gateway_id" {
-  description = "ID of the NAT Gateway (null when enable_nat_gateway is false)"
+  description = "First NAT Gateway ID (null when NAT Gateway is disabled)"
   value       = try(aws_nat_gateway.this[0].id, null)
+}
+
+output "nat_gateway_ids" {
+  description = "List of all NAT Gateway IDs (empty when NAT Gateway is disabled)"
+  value       = aws_nat_gateway.this[*].id
 }

@@ -1,3 +1,4 @@
+
 terraform {
   required_version = ">= 1.10.0"
 
@@ -27,6 +28,7 @@ module "vpc" {
   public_subnet_cidrs  = var.public_subnet_cidrs
   private_subnet_cidrs = var.private_subnet_cidrs
   enable_nat_gateway   = var.enable_nat_gateway
+  nat_gateway_mode     = var.nat_gateway_mode
   tags                 = var.tags
 }
 
@@ -66,6 +68,11 @@ output "internet_gateway_id" {
 }
 
 output "nat_gateway_id" {
-  description = "NAT Gateway ID"
+  description = "First NAT Gateway ID"
   value       = module.vpc.nat_gateway_id
+}
+
+output "nat_gateway_ids" {
+  description = "List of all NAT Gateway IDs"
+  value       = module.vpc.nat_gateway_ids
 }

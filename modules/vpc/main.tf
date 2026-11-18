@@ -1,3 +1,9 @@
+locals {
+  nat_gateway_count = var.enable_nat_gateway ? (
+    var.nat_gateway_mode == "per_az" ? 2 : 1
+  ) : 0
+}
+
 resource "aws_vpc" "this" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
@@ -65,24 +71,24 @@ resource "aws_route_table_association" "public" {
 }
 
 resource "aws_eip" "nat" {
-  count  = var.enable_nat_gateway ? 1 : 0
+  count  = local.nat_gateway_count
   domain = "vpc"
 
   tags = merge(var.tags, {
-    Name = "${var.project_name}-${var.environment}-nat-eip"
+    Name = "${var.project_name}-${var.environment}-nat-eip-${count.index + 1}"
   })
 }
 
 resource "aws_nat_gateway" "this" {
-  count = var.enable_nat_gateway ? 1 : 0
+  count = local.nat_gateway_count
 
-  allocation_id = aws_eip.nat[0].id
-  subnet_id     = aws_subnet.public[0].id
+  allocation_id = aws_eip.nat[count.index].id
+  subnet_id     = aws_subnet.public[count.index].id
 
   depends_on = [aws_internet_gateway.this]
 
   tags = merge(var.tags, {
-    Name = "${var.project_name}-${var.environment}-nat"
+    Name = "${var.project_name}-${var.environment}-nat-${count.index + 1}"
   })
 }
 
@@ -94,8 +100,11 @@ resource "aws_route_table" "private" {
     for_each = var.enable_nat_gateway ? [1] : []
 
     content {
-      cidr_block     = "0.0.0.0/0"
-      nat_gateway_id = aws_nat_gateway.this[0].id
+      cidr_block = "0.0.0.0/0"
+
+      nat_gateway_id = aws_nat_gateway.this[
+        var.nat_gateway_mode == "per_az" ? count.index : 0
+      ].id
     }
   }
 
