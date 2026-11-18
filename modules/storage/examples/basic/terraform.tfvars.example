@@ -1,0 +1,15 @@
+project_name = "iac-platform"
+environment  = "dev"
+
+# bucket_suffix must be globally unique across all AWS S3 buckets.
+# Use a short random string or your AWS account ID suffix.
+# Final bucket name will be: iac-platform-dev-<bucket_suffix>
+bucket_suffix = "a1b2c3"
+
+versioning_enabled = true
+
+tags = {
+  Project     = "iac-platform"
+  Environment = "dev"
+  ManagedBy   = "Terraform"
+}

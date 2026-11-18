@@ -1,0 +1,24 @@
+project_name = "iac-platform"
+environment  = "dev"
+
+# Replace with real IDs from your VPC module output or existing VPC
+# In Stage 2 these values come from the VPC module outputs automatically
+vpc_id             = "vpc-0123456789abcdef0"
+public_subnet_ids  = ["subnet-0123456789abcdef0", "subnet-0123456789abcdef1"]
+private_subnet_ids = ["subnet-0123456789abcdef2", "subnet-0123456789abcdef3"]
+
+container_image   = "nginx:alpine"
+container_port    = 80
+task_cpu          = 256
+task_memory       = 512
+desired_count     = 1
+health_check_path = "/"
+
+# Set to 1 or 3 to reduce log storage costs during development
+log_retention_days = 7
+
+tags = {
+  Project     = "iac-platform"
+  Environment = "dev"
+  ManagedBy   = "Terraform"
+}

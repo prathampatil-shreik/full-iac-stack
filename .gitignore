@@ -1,0 +1,54 @@
+# Terraform working directories
+.terraform/
+
+# Terraform state — never commit state files
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Terraform plan files — may contain sensitive data
+*.tfplan
+*.plan
+
+# Terraform variable files — may contain secrets
+# terraform.tfvars.example is explicitly allowed below
+*.tfvars
+!terraform.tfvars.example
+*.auto.tfvars
+
+# Terraform crash logs
+crash.log
+crash.*.log
+
+# Terraform local override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Lock file is intentionally tracked — do NOT exclude
+# .terraform.lock.hcl
+
+# Secrets and credentials
+*.pem
+*.key
+.env
+.env.*
+secrets.tf
+secrets.*.tf
+
+# Go test binaries (Terratest)
+*.test
+coverage.out
+vendor/
+
+# Editor temporary files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
