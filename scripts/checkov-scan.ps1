@@ -1,13 +1,9 @@
 # scripts/checkov-scan.ps1
 #
-# Stage 3 — Checkov IaC security scan.
+# Stage 3 - Checkov IaC security scan.
 # Run from the repository root: .\scripts\checkov-scan.ps1
 #
-# Requires: checkov (pip install checkov  OR  brew install checkov)
-# Windows:  pip install checkov
-#
-# Scans all Terraform under the repo root, excluding .terraform dirs,
-# state files, plan files, and local tfvars (see .checkov.yaml).
+# Requires: pip install checkov
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -20,17 +16,12 @@ if (-not (Get-Command checkov -ErrorAction SilentlyContinue)) {
 }
 
 Write-Host "`n=== Checkov scan ===" -ForegroundColor Cyan
-Write-Host "  Root : $RepoRoot"
+Write-Host "  Root  : $RepoRoot"
 Write-Host "  Config: .checkov.yaml"
 
 Push-Location $RepoRoot
 try {
-    checkov `
-        --directory . `
-        --config-file .checkov.yaml `
-        --output cli `
-        --soft-fail-on MEDIUM
-
+    checkov --directory . --config-file .checkov.yaml --output cli --compact
     $exitCode = $LASTEXITCODE
 } finally {
     Pop-Location
@@ -38,10 +29,9 @@ try {
 
 Write-Host "`n=== Summary ===" -ForegroundColor Cyan
 if ($exitCode -eq 0) {
-    Write-Host "Checkov: PASS (no HIGH/CRITICAL findings)" -ForegroundColor Green
+    Write-Host "Checkov: PASS (0 failures)" -ForegroundColor Green
 } else {
-    Write-Host "Checkov: findings detected — review output above." -ForegroundColor Yellow
-    Write-Host "  HIGH/CRITICAL findings must be resolved or explicitly suppressed in .checkov.yaml with justification."
+    Write-Host "Checkov: FAIL - review output above and suppress with justification in .checkov.yaml" -ForegroundColor Red
 }
 
 exit $exitCode

@@ -28,11 +28,12 @@ func TestComputeModuleValidate_Static(t *testing.T) {
 
 	opts := &terraform.Options{
 		TerraformDir: filepath.Join("..", "modules", "compute"),
-		InitArgs:     []string{"-backend=false"},
 		NoColor:      true,
 	}
 
-	terraform.Init(t, opts)
+	_, err := terraform.RunTerraformCommandE(t, opts, "init", "-backend=false", "-input=false", "-no-color")
+	require.NoError(t, err, "terraform init failed for modules/compute")
+
 	output, err := terraform.ValidateE(t, opts)
 	require.NoError(t, err, "terraform validate failed for modules/compute")
 	assert.Contains(t, output, "Success")
@@ -45,11 +46,12 @@ func TestComputeExampleValidate_Static(t *testing.T) {
 
 	opts := &terraform.Options{
 		TerraformDir: filepath.Join("..", "modules", "compute", "examples", "basic"),
-		InitArgs:     []string{"-backend=false"},
 		NoColor:      true,
 	}
 
-	terraform.Init(t, opts)
+	_, err := terraform.RunTerraformCommandE(t, opts, "init", "-backend=false", "-input=false", "-no-color")
+	require.NoError(t, err, "terraform init failed for compute/examples/basic")
+
 	output, err := terraform.ValidateE(t, opts)
 	require.NoError(t, err, "terraform validate failed for compute/examples/basic")
 	assert.Contains(t, output, "Success")
@@ -64,11 +66,12 @@ func TestDatabaseModuleValidate_Static(t *testing.T) {
 
 	opts := &terraform.Options{
 		TerraformDir: filepath.Join("..", "modules", "database"),
-		InitArgs:     []string{"-backend=false"},
 		NoColor:      true,
 	}
 
-	terraform.Init(t, opts)
+	_, err := terraform.RunTerraformCommandE(t, opts, "init", "-backend=false", "-input=false", "-no-color")
+	require.NoError(t, err, "terraform init failed for modules/database")
+
 	output, err := terraform.ValidateE(t, opts)
 	require.NoError(t, err, "terraform validate failed for modules/database")
 	assert.Contains(t, output, "Success")
@@ -81,11 +84,12 @@ func TestDatabaseExampleValidate_Static(t *testing.T) {
 
 	opts := &terraform.Options{
 		TerraformDir: filepath.Join("..", "modules", "database", "examples", "basic"),
-		InitArgs:     []string{"-backend=false"},
 		NoColor:      true,
 	}
 
-	terraform.Init(t, opts)
+	_, err := terraform.RunTerraformCommandE(t, opts, "init", "-backend=false", "-input=false", "-no-color")
+	require.NoError(t, err, "terraform init failed for database/examples/basic")
+
 	output, err := terraform.ValidateE(t, opts)
 	require.NoError(t, err, "terraform validate failed for database/examples/basic")
 	assert.Contains(t, output, "Success")
@@ -100,11 +104,12 @@ func TestStorageModuleValidate_Static(t *testing.T) {
 
 	opts := &terraform.Options{
 		TerraformDir: filepath.Join("..", "modules", "storage"),
-		InitArgs:     []string{"-backend=false"},
 		NoColor:      true,
 	}
 
-	terraform.Init(t, opts)
+	_, err := terraform.RunTerraformCommandE(t, opts, "init", "-backend=false", "-input=false", "-no-color")
+	require.NoError(t, err, "terraform init failed for modules/storage")
+
 	output, err := terraform.ValidateE(t, opts)
 	require.NoError(t, err, "terraform validate failed for modules/storage")
 	assert.Contains(t, output, "Success")
@@ -117,11 +122,12 @@ func TestStorageExampleValidate_Static(t *testing.T) {
 
 	opts := &terraform.Options{
 		TerraformDir: filepath.Join("..", "modules", "storage", "examples", "basic"),
-		InitArgs:     []string{"-backend=false"},
 		NoColor:      true,
 	}
 
-	terraform.Init(t, opts)
+	_, err := terraform.RunTerraformCommandE(t, opts, "init", "-backend=false", "-input=false", "-no-color")
+	require.NoError(t, err, "terraform init failed for storage/examples/basic")
+
 	output, err := terraform.ValidateE(t, opts)
 	require.NoError(t, err, "terraform validate failed for storage/examples/basic")
 	assert.Contains(t, output, "Success")
@@ -131,14 +137,12 @@ func TestStorageExampleValidate_Static(t *testing.T) {
 
 // TestDatabaseModuleApply_AWS would deploy a real RDS instance.
 // Classification: AWS INTEGRATION — SKIPPED
-// Estimated cost: ~$0.02/hr for db.t3.micro. Always run terraform destroy after.
 func TestDatabaseModuleApply_AWS(t *testing.T) {
 	t.Skip("AWS integration test — creates real RDS instance. Remove t.Skip() only in a controlled environment with destroy deferred.")
 }
 
 // TestComputeModuleApply_AWS would deploy a real ECS cluster + ALB.
 // Classification: AWS INTEGRATION — SKIPPED
-// Estimated cost: ~$0.008/hr for ALB + Fargate tasks.
 func TestComputeModuleApply_AWS(t *testing.T) {
 	t.Skip("AWS integration test — creates real ECS/ALB resources. Remove t.Skip() only in a controlled environment with destroy deferred.")
 }
