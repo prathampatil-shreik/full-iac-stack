@@ -16,13 +16,25 @@ iac-platform/
 │   ├── database/     # RDS MySQL
 │   └── storage/      # S3 bucket
 ├── envs/
-│   ├── dev/          # Development environment root configuration (Stage 2)
-│   └── prod/         # Production environment root configuration (Stage 2)
-├── tests/            # Terratest integration tests (Stage 2)
-├── policy/           # OPA / Sentinel policy-as-code (Stage 3)
+│   ├── dev/          # Development environment root configuration
+│   └── prod/         # Production environment root configuration
+├── bootstrap/
+│   ├── state-bucket/ # S3 remote state backend (one-time setup)
+│   └── oidc/         # GitHub Actions OIDC provider + IAM roles (Stage 4)
+├── tests/            # Terratest static + integration tests
+├── policy/
+│   └── terraform/    # OPA/Conftest Rego policies and unit tests
+├── scripts/          # Quality check scripts (fmt, validate, tflint, checkov, conftest)
+├── .checkov.yaml     # Checkov configuration with justified suppressions
+├── .tflint.hcl       # TFLint configuration
 ├── .github/
 │   └── workflows/    # GitHub Actions OIDC CI/CD pipelines (Stage 4)
+│       ├── ci.yml    # PR gate: quality, security, plan
+│       ├── cd.yml    # Deploy on merge: apply dev → apply prod (approval)
+│       └── drift.yml # Daily drift detection
 └── docs/
+    ├── stage3.md     # Stage 3 instructions and evidence
+    ├── stage4.md     # Stage 4 instructions and evidence
     └── evidence/     # Assignment evidence artefacts
 ```
 
@@ -120,6 +132,48 @@ terraform validate
 terraform plan -var="enable_nat_gateway=false"
 ```
 
+## Stage 3 — Quality Checks Quick Start
+
+```powershell
+# Terraform fmt + validate (all directories)
+.\scripts\tf-quality.ps1
+
+# TFLint (requires tflint on PATH)
+.\scripts\tflint-scan.ps1
+
+# Checkov security scan
+.\scripts\checkov-scan.ps1
+
+# OPA unit tests (requires opa on PATH)
+opa test policy/terraform --verbose
+
+# Conftest plan fixture tests (requires conftest on PATH)
+.\scripts\conftest-scan.ps1
+```
+
+See `docs/stage3.md` for full instructions, expected output, and suppression justifications.
+
+## Stage 4 — OIDC CI/CD Quick Start
+
+```powershell
+# 1. Bootstrap OIDC provider and IAM roles (one-time, requires AWS credentials)
+cd bootstrap\oidc
+copy terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars: set github_org and github_repo
+terraform init
+terraform apply
+
+# 2. Copy the output role ARNs into GitHub Secrets:
+#    AWS_CI_ROLE_ARN, AWS_CD_ROLE_ARN, AWS_REGION,
+#    TF_VAR_DB_PASSWORD, DEV_BUCKET_SUFFIX, PROD_BUCKET_SUFFIX
+
+# 3. Create GitHub Environments: dev (no gate) and prod (required reviewers)
+
+# Workflows activate automatically on PR / push to main / daily schedule
+```
+
+See `docs/stage4.md` for full setup instructions, security design, and workflow descriptions.
+
 ## Cost Controls
 
 - Do not run `terraform apply` without reviewing the plan output
@@ -135,13 +189,14 @@ terraform plan -var="enable_nat_gateway=false"
 - Database passwords are never hardcoded — supplied via `TF_VAR_db_password`
 - S3 buckets block all public access
 - IAM roles use AWS managed policies scoped to their service
+- GitHub Actions uses OIDC — no long-lived AWS credentials stored anywhere
 
 ## Stages
 
 | Stage | Description | Status |
 |-------|-------------|--------|
 | 1 | Reusable module design and implementation | ✅ Complete |
-| 2 | Environment integration (`envs/dev`, `envs/prod`) | Pending |
-| 3 | Policy-as-Code (OPA/Sentinel) | Pending |
-| 4 | OIDC CI/CD (GitHub Actions) | Pending |
+| 2 | Environment integration (`envs/dev`, `envs/prod`) | ✅ Complete |
+| 3 | Policy-as-Code, Checkov, TFLint, Terratest | ✅ Complete |
+| 4 | OIDC CI/CD (GitHub Actions) | ✅ Complete |
 | 5 | Drift detection and cost controls | Pending |

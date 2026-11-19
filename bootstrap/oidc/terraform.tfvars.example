@@ -1,0 +1,4 @@
+aws_region        = "us-east-1"
+github_org        = "your-github-username-or-org"
+github_repo       = "iac-platform"
+state_bucket_name = "shreik-iac-platform-tfstate-2026"

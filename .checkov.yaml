@@ -1,0 +1,156 @@
+# .checkov.yaml
+#
+# Checkov static analysis configuration for the iac-platform Terraform codebase.
+# Run: checkov -d . --config-file .checkov.yaml
+#
+# All suppressions are documented with justification. No finding is suppressed
+# without a reason. Findings marked ACCEPT are known limitations of this
+# demonstration platform that would be addressed before production use.
+
+framework:
+  - terraform
+
+# Paths to exclude from scanning (checkov --skip-path)
+skip-path:
+  - .terraform
+  - terraform.tfstate
+  - terraform.tfstate.backup
+  - bootstrap.tfplan
+  - dev.tfplan
+  - dev-recovery.tfplan
+  - prod.tfplan
+
+# Output format
+output: cli
+compact: true
+quiet: false
+
+# Checks to skip with documented justification
+skip-check:
+  # ── HTTP / HTTPS (intentional architecture decision) ─────────────────────────
+
+  # CKV_AWS_2 / CKV_AWS_103 / CKV2_AWS_20 / CKV_AWS_378:
+  # This platform uses HTTP only (port 80). It is a demonstration environment
+  # without a registered domain or ACM certificate. HTTPS termination would be
+  # required before any production use.
+  - CKV_AWS_2
+  - CKV_AWS_103
+  - CKV2_AWS_20
+  - CKV_AWS_378
+
+  # CKV_AWS_260: ALB security group allows ingress on port 80 from 0.0.0.0/0.
+  # This is the intentional public HTTP entry point for the load balancer.
+  # The OPA policy no_unrestricted_ingress.rego enforces that only port 80
+  # is permitted; all other sensitive ports are blocked.
+  - CKV_AWS_260
+
+  # ── ALB hardening (out of scope for this assignment) ─────────────────────────
+
+  # CKV_AWS_91: ALB access logging — incurs S3 storage cost; out of scope.
+  - CKV_AWS_91
+
+  # CKV_AWS_131: ALB drop invalid headers — low risk for demo; would be enabled
+  # before production use.
+  - CKV_AWS_131
+
+  # CKV_AWS_150: ALB deletion protection — intentionally disabled in dev to
+  # allow terraform destroy during development sessions (cost control).
+  - CKV_AWS_150
+
+  # CKV2_AWS_28: WAF on ALB — requires a separate module and additional cost;
+  # out of scope for this assignment.
+  - CKV2_AWS_28
+
+  # ── ECS egress (required for Fargate operation) ───────────────────────────────
+
+  # CKV_AWS_382: ECS tasks and ALB require unrestricted egress to reach ECR
+  # (image pull), CloudWatch Logs, and AWS service endpoints. Restricting
+  # egress would require VPC endpoints for every AWS service used, which is
+  # out of scope for this assignment.
+  - CKV_AWS_382
+
+  # ── CloudWatch Logs (cost/scope) ─────────────────────────────────────────────
+
+  # CKV_AWS_158: CloudWatch log group KMS encryption — requires a KMS key
+  # resource and associated cost; out of scope for this assignment.
+  - CKV_AWS_158
+
+  # CKV_AWS_338: Log retention >= 1 year — dev environment uses 7-day retention
+  # for cost control. Prod uses a longer retention period.
+  - CKV_AWS_338
+
+  # ── RDS hardening (dev environment trade-offs) ────────────────────────────────
+
+  # CKV_AWS_133: RDS backup retention — dev environment sets backup_retention_period=0
+  # to reduce cost. Prod sets a non-zero value. The variable is configurable.
+  - CKV_AWS_133
+
+  # CKV_AWS_129: RDS enhanced logging (audit/error/general/slowquery logs) —
+  # requires additional CloudWatch log groups and cost; out of scope.
+  - CKV_AWS_129
+
+  # CKV_AWS_226: RDS auto minor version upgrade — intentionally left as a
+  # configurable variable; not forced on to allow controlled upgrade windows.
+  - CKV_AWS_226
+
+  # CKV_AWS_118: RDS enhanced monitoring — requires an IAM role for the
+  # monitoring agent; out of scope for this assignment module.
+  - CKV_AWS_118
+
+  # CKV_AWS_161: RDS IAM authentication — not implemented in this module;
+  # password auth is used with the password supplied via TF_VAR_db_password.
+  - CKV_AWS_161
+
+  # CKV_AWS_293: RDS deletion protection — intentionally disabled in dev to
+  # allow terraform destroy. Prod sets deletion_protection=true.
+  - CKV_AWS_293
+
+  # CKV_AWS_157: RDS Multi-AZ — disabled in dev for cost. Prod enables it.
+  - CKV_AWS_157
+
+  # CKV2_AWS_60: RDS copy tags to snapshots — minor operational feature;
+  # not implemented in this module scope.
+  - CKV2_AWS_60
+
+  # ── S3 hardening (out of scope) ───────────────────────────────────────────────
+
+  # CKV_AWS_18: S3 access logging — requires a separate logging bucket;
+  # out of scope for this assignment.
+  - CKV_AWS_18
+
+  # CKV_AWS_144: S3 cross-region replication — requires a second region and
+  # replication IAM role; out of scope.
+  - CKV_AWS_144
+
+  # CKV_AWS_145: S3 KMS encryption — this module uses SSE-S3 (AES256) which
+  # is sufficient for this assignment. KMS CMK would add cost and complexity.
+  - CKV_AWS_145
+
+  # CKV2_AWS_61: S3 lifecycle configuration — not required for this demo bucket.
+  - CKV2_AWS_61
+
+  # CKV2_AWS_62: S3 event notifications — not required for this demo bucket.
+  - CKV2_AWS_62
+
+  # ── VPC hardening (out of scope) ──────────────────────────────────────────────
+
+  # CKV2_AWS_11: VPC flow logging — requires a CloudWatch log group and IAM
+  # role for flow logs; out of scope for this assignment.
+  - CKV2_AWS_11
+
+  # CKV2_AWS_12: Default VPC security group — Terraform does not manage the
+  # default SG in this module; would require an explicit aws_default_security_group
+  # resource. Out of scope.
+  - CKV2_AWS_12
+
+  # CKV_AWS_130: Public subnets assign public IPs — this is intentional for
+  # the ALB subnets. The ALB requires public IPs; ECS tasks use private subnets.
+  - CKV_AWS_130
+
+  # ── Data source pinning ───────────────────────────────────────────────────────
+
+  # CKV_AWS_394: aws_availability_zones data source zone pinning — the data
+  # source is sliced to exactly 2 AZs via slice(..., 0, 2) which bounds the
+  # result set. Adding an explicit filter would be a minor improvement but
+  # does not affect correctness for this assignment.
+  - CKV_AWS_394
